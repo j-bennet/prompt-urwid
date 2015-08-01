@@ -1,43 +1,63 @@
-# -*- coding: utf-8 -*-
-
 import urwid
 
 
-palette = [
-    ('header', 'white', 'black'),
-    ('reveal focus', 'black', 'dark cyan', 'standout'),
-]
+def urwid_test():
+    """
+            'black', 'dark red', 'dark green', 'brown', 'dark blue',
+            'dark magenta', 'dark cyan', 'light gray', 'dark gray',
+            'light red', 'light green', 'yellow', 'light blue', 
+            'light magenta', 'light cyan', 'white'
+    """
 
-list_items = [
-    urwid.Text(u"This is a text string that is fairly long"),
-    urwid.Divider(u"-"),
-    urwid.Text(u"Short one"),
-    urwid.Text(u"Another"),
-    urwid.Divider(u"-"),
-    urwid.Text(u"What could be after this?"),
-    urwid.Text(u"The end.")
-]
+    class MyListBox(urwid.ListBox):
+        def focus_next(self):
+            try:
+                self.body.set_focus(
+                    self.body.get_next(self.body.get_focus()[1])[1])
+            except:
+                pass
 
-content = urwid.SimpleListWalker([
-    urwid.AttrMap(w, None, 'reveal focus') for w in list_items])
+        def focus_previous(self):
+            try:
+                self.body.set_focus(
+                    self.body.get_prev(self.body.get_focus()[1])[1])
+            except:
+                pass
 
-listbox = urwid.ListBox(content)
-show_key = urwid.Text(u"", wrap='clip')
-head = urwid.AttrMap(show_key, 'header')
-top = urwid.Frame(listbox, head)
+    def handle_input(input):
+        if input == "enter":
+            head.original_widget.set_text("key pressed: %s" % input)
+        elif input == "up":
+            listbox.focus_previous()
+        elif input == "down":
+            listbox.focus_next()
+        else:
+            raise urwid.ExitMainLoop()
+
+    palette = [("top", "white", "black"),
+               ("line", "light green", "dark green", "standout"),
+               ("frame", "dark magenta", "white"),
+               ]
+
+    widgets = [urwid.AttrMap(widget, None, "line") for widget in
+               [
+                   urwid.Text("Chemma!"),
+                   urwid.Divider("-"),
+                   urwid.Text("Another text widget!"),
+                   urwid.Divider("-"),
+                   urwid.Text("What is your name"),
+                   urwid.Divider("-"),
+                   urwid.Text("Boy ?"),
+               ]
+               ]
+    head = urwid.AttrMap(urwid.Text("key pressed :", wrap="clip"), "top")
+    L = urwid.SimpleListWalker(widgets)
+    listbox = MyListBox(L)
+    top = urwid.AttrMap(urwid.Frame(listbox, head), "frame")
+    loop = urwid.MainLoop(top, palette, unhandled_input=handle_input)
+    loop.screen.set_terminal_properties(colors=256)
+    loop.run()
 
 
-def show_all_input(input, raw):
-    show_key.set_text(u"Pressed: " + u" ".join([
-        unicode(i) for i in input]))
-    return input
-
-
-def exit_on_cr(input):
-    if input == 'enter':
-        raise urwid.ExitMainLoop()
-
-loop = urwid.MainLoop(top, palette,
-    input_filter=show_all_input, unhandled_input=exit_on_cr)
-
-loop.run()
+if __name__ == "__main__":
+    urwid_test()
