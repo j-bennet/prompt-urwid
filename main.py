@@ -1,63 +1,62 @@
+# -*- coding: utf-8
 import urwid
+from widgets import FocusListBox
+
+"""
+Safe colors:
+
+'black', 'dark red', 'dark green', 'brown', 'dark blue',
+'dark magenta', 'dark cyan', 'light gray', 'dark gray',
+'light red', 'light green', 'yellow', 'light blue',
+'light magenta', 'light cyan', 'white'
+"""
 
 
-def urwid_test():
-    """
-            'black', 'dark red', 'dark green', 'brown', 'dark blue',
-            'dark magenta', 'dark cyan', 'light gray', 'dark gray',
-            'light red', 'light green', 'yellow', 'light blue', 
-            'light magenta', 'light cyan', 'white'
-    """
+class SimpleCli():
 
-    class MyListBox(urwid.ListBox):
-        def focus_next(self):
-            try:
-                self.body.set_focus(
-                    self.body.get_next(self.body.get_focus()[1])[1])
-            except:
-                pass
+    top = None
+    header = None
+    listbox = None
 
-        def focus_previous(self):
-            try:
-                self.body.set_focus(
-                    self.body.get_prev(self.body.get_focus()[1])[1])
-            except:
-                pass
+    palette = [
+        ("top", "white", "black"),
+        ("line", "light green", "dark green", "standout"),
+        ("frame", "dark magenta", "white"),
+    ]
 
-    def handle_input(input):
+    def handle_input(self, input):
         if input == "enter":
-            head.original_widget.set_text("key pressed: %s" % input)
+            self.header.original_widget.set_text("key pressed: %s" % input)
         elif input == "up":
-            listbox.focus_previous()
+            self.listbox.on_keyup()
         elif input == "down":
-            listbox.focus_next()
+            self.listbox.on_keydn()
         else:
             raise urwid.ExitMainLoop()
 
-    palette = [("top", "white", "black"),
-               ("line", "light green", "dark green", "standout"),
-               ("frame", "dark magenta", "white"),
-               ]
+    def create_list_items(self):
+        items = [urwid.AttrMap(widget, None, "line") for widget in [
+            urwid.Text("XXXYYYZZZ 05/01/2015 boo-hoo   Stopped"),
+            urwid.Text("222333444 06/21/2015 mom-dad   Running"),
+            urwid.Text("555YYY777 07/05/2015 some-name Stopped"),
+            urwid.Text("XXXAAA888 08/08/2015 tada-nix  Stopped"),
+        ]]
+        return items
 
-    widgets = [urwid.AttrMap(widget, None, "line") for widget in
-               [
-                   urwid.Text("Chemma!"),
-                   urwid.Divider("-"),
-                   urwid.Text("Another text widget!"),
-                   urwid.Divider("-"),
-                   urwid.Text("What is your name"),
-                   urwid.Divider("-"),
-                   urwid.Text("Boy ?"),
-               ]
-               ]
-    head = urwid.AttrMap(urwid.Text("key pressed :", wrap="clip"), "top")
-    L = urwid.SimpleListWalker(widgets)
-    listbox = MyListBox(L)
-    top = urwid.AttrMap(urwid.Frame(listbox, head), "frame")
-    loop = urwid.MainLoop(top, palette, unhandled_input=handle_input)
-    loop.screen.set_terminal_properties(colors=256)
-    loop.run()
+    def run(self):
+
+        self.header = urwid.AttrMap(
+            urwid.Text("key pressed :", wrap="clip"), "top")
+        self.listbox = FocusListBox(urwid.SimpleListWalker(self.create_list_items()))
+        self.top = urwid.AttrMap(
+            urwid.Frame(self.listbox, self.header), "frame")
+
+        loop = urwid.MainLoop(
+            self.top, self.palette, unhandled_input=self.handle_input)
+        loop.screen.set_terminal_properties(colors=256)
+        loop.run()
 
 
 if __name__ == "__main__":
-    urwid_test()
+    cli = SimpleCli()
+    cli.run()
