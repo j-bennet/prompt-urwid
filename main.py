@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 import urwid
-from widgets import FocusListBox
+from widgets import MainWindow, ContainerList
 
 """
 Safe colors:
@@ -15,18 +15,48 @@ Safe colors:
 class SimpleCli():
 
     top = None
-    header = None
     listbox = None
+    info = None
+    info_container = None
 
     palette = [
         ("top", "white", "black"),
-        ("line", "light green", "dark green", "standout"),
-        ("frame", "dark magenta", "white"),
+        ("selection", "black", "dark gray", "standout"),
+        ("panels", "white", "dark blue"),
+        ('header', 'light gray', 'black', 'bold'),
+        ('footer', 'light gray', 'black', 'bold'),
+    ]
+
+    containers = [{
+        'Id': '12345',
+        'Image': 'ubuntu:latest',
+        'Command': '/usr/bin/bash',
+        'Created': '2 days ago',
+        'Status': 'Running',
+        'Ports': '8080:80',
+        'Names': 'kate-blanchett'
+    }, {
+        'Id': '78901',
+        'Image': 'busybox:latest',
+        'Command': 'run.sh',
+        'Created': '3 hours ago',
+        'Status': 'Stopped',
+        'Ports': '',
+        'Names': 'tom-cruise'
+    }, {
+        'Id': '23456',
+        'Image': 'mysql:5.6',
+        'Command': 'mysqld start',
+        'Created': '1 hour ago',
+        'Status': 'Running',
+        'Ports': '3306',
+        'Names': 'mel-gibson'
+    },
     ]
 
     def handle_input(self, input):
         if input == "enter":
-            self.header.original_widget.set_text("key pressed: %s" % input)
+            self.info.original_widget.set_text("key pressed: %s" % input)
         elif input == "up":
             self.listbox.on_keyup()
         elif input == "down":
@@ -34,25 +64,18 @@ class SimpleCli():
         else:
             raise urwid.ExitMainLoop()
 
-    def create_list_items(self):
-        items = [urwid.AttrMap(widget, None, "line") for widget in [
-            urwid.Text("XXXYYYZZZ 05/01/2015 boo-hoo   Stopped"),
-            urwid.Text("222333444 06/21/2015 mom-dad   Running"),
-            urwid.Text("555YYY777 07/05/2015 some-name Stopped"),
-            urwid.Text("XXXAAA888 08/08/2015 tada-nix  Stopped"),
-        ]]
-        return items
-
     def run(self):
 
-        self.header = urwid.AttrMap(
-            urwid.Text("key pressed :", wrap="clip"), "top")
-        self.listbox = FocusListBox(urwid.SimpleListWalker(self.create_list_items()))
-        self.top = urwid.AttrMap(
-            urwid.Frame(self.listbox, self.header), "frame")
+        self.listbox = ContainerList(self.containers)
+
+        self.info = urwid.LineBox(urwid.Text('<BOO>'))
+        self.info_container = urwid.Filler(self.info)
+
+        self.top = MainWindow(self.listbox, self.info_container)
 
         loop = urwid.MainLoop(
             self.top, self.palette, unhandled_input=self.handle_input)
+
         loop.screen.set_terminal_properties(colors=256)
         loop.run()
 
